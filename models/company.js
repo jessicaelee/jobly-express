@@ -3,8 +3,11 @@ const sqlForPartialUpdate = require('../helpers/partialUpdate');
 
 class Company {
 
+  /** finds all companies based on query parameters */
   static async findAll(search, min, max) {
     let filters = [];
+    let companyResp;
+
     if (search !== undefined) {
       filters.push(`name LIKE '%${search}%'`);
     }
@@ -15,30 +18,29 @@ class Company {
       filters.push(`num_employees >= ${max}`);
     }
 
-    let companyResp;
-
-    if (filters.length > 0) {
-      let queryString = `SELECT handle, name FROM companies WHERE ` + filters.join("AND ")
+    if (filters.length) {
+      let queryString = `SELECT handle, name FROM companies WHERE ` + filters.join("AND ");
       companyResp = await db.query(queryString);
     } else {
       companyResp = await db.query(`SELECT handle, name FROM companies`);
     }
 
     return companyResp.rows;
-
   }
 
-  static async create(data) {
+  /** creates new company based on data passed in */
+  static async create(company) {
     const result = await db.query(
       `INSERT INTO companies (handle, name, num_employees, description, logo_url) 
              VALUES ($1, $2, $3, $4, $5) 
              RETURNING handle, name, num_employees, description, logo_url`,
-      [data.handle, data.name, data.num_employees, data.description, data.logo_url]);
+      [company.handle, company.name, company.num_employees, company.description, company.logo_url]);
 
     return result.rows[0];
   }
 
-  static async findOne(handle){
+  /** finds a company based on its handle */
+  static async findOne(handle) {
     const results = await db.query(
       `SELECT handle, name, num_employees, description, logo_url
       FROM companies
@@ -46,26 +48,39 @@ class Company {
       [handle]
     );
 
-    if (results.rows.length === 0){
-      throw {message: `There is no company with the handle, ${handle}`, status: 404}
+    if (!results.rows.length) {
+      throw { message: `There is no company with the handle, ${handle}`, status: 404 }
     }
 
     return results.rows[0];
   }
 
-  static async update(handle, body){
-    const updated = sqlForPartialUpdate("companies", body, "handle", handle);
-    const results = await db.query(updated.query, updated.values);
+  /** updates a company based on its handle */
+  static async update(handle, body) {
+    const { query, values } = sqlForPartialUpdate("companies", body, "handle", handle);
+    const results = await db.query(query, values);
 
-    if (results.rows.length === 0){
-      throw {message: `There is no company with the handle, ${handle}`, status: 404}
+    if (!results.rows.length) {
+      throw { message: `There is no company with the handle, ${handle}`, status: 404 }
     }
 
     return results.rows[0];
   }
 
+  /** deletes a company from db based on its handle */
+  static async delete(handle) {
+    const results = await db.query(
+      `DELETE FROM companies
+      WHERE handle=$1
+      RETURNING handle`,
+      [handle]);
+
+    if (!results.rows.length) {
+      throw { message: `There is no company with the handle, ${handle}`, status: 404 }
+    }
+  }
 }
 
 
 
-module.exports = Company
+module.exports = Company;

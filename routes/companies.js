@@ -4,8 +4,9 @@ const ExpressError = require('../helpers/expressError');
 const Company = require('../models/company');
 const jsonschema = require('jsonschema');
 const companySchema = require('../schemas/companySchema');
+const updateCompanySchema = require('../schemas/updateCompanySchema');
 
-
+/** GET all companies; returns {companies: [companyData, ...]} */
 router.get('/', async function (req, res, next) {
   try {
     const search = req.query.search;
@@ -25,6 +26,7 @@ router.get('/', async function (req, res, next) {
   }
 });
 
+/** POST new company; returns {company: companyData} */
 router.post('/', async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, companySchema);
@@ -43,6 +45,7 @@ router.post('/', async function (req, res, next) {
   }
 });
 
+/** GET one company by its handle; returns {company: companyData} */
 router.get('/:handle', async function (req, res, next) {
   try {
     const company = await Company.findOne(req.params.handle);
@@ -53,10 +56,20 @@ router.get('/:handle', async function (req, res, next) {
   }
 });
 
+/** PATCH one company by its handle; returns {company: companyData} */
 router.patch('/:handle', async function (req, res, next) {
   try {
-    const handle = req.params.handle;
-    const body = req.body;
+    const result = jsonschema.validate(req.body, updateCompanySchema);
+    const { handle } = req.params;
+    const { body } = req;
+
+    const { body, params: { handle } } = req;
+
+    if (!result.valid) {
+      const errorList = result.errors.map(error => error.stack);
+      const error = new ExpressError(errorList, 400);
+      return next(error);
+    }
 
     const company = await Company.update(handle, body);
     return res.json({ company });
@@ -65,5 +78,15 @@ router.patch('/:handle', async function (req, res, next) {
     return next(err);
   }
 });
+
+/** DELETE a company; returns { message: "Company deleted" } */
+router.delete('/:handle', async function (req, res, next) {
+  try {
+    await Company.delete(req.params.handle);
+    return res.json({ message: "Company deleted" });
+  } catch (err) {
+    return next(err);
+  }
+})
 
 module.exports = router;

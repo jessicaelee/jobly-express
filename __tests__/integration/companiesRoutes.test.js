@@ -11,7 +11,7 @@ describe("Company Routes Testing", function () {
   let company2;
 
   beforeEach(async function () {
-    await db.query("DELETE FROM companies")
+    await db.query("DELETE FROM companies");
 
     company1 = await Company.create(
       {
@@ -30,7 +30,7 @@ describe("Company Routes Testing", function () {
 
   describe("GET /companies", function () {
     test("can get list of all companies", async function () {
-      let resp = await request(app).get('/companies');
+      const resp = await request(app).get('/companies');
 
       expect(resp.statusCode).toBe(200);
       expect(resp.body).toEqual({
@@ -46,8 +46,8 @@ describe("Company Routes Testing", function () {
       });
     });
 
-    test("will not get list of companies", async function () {
-      let resp = await request(app)
+    test("will not get list of companies if min > max employees", async function () {
+      const resp = await request(app)
         .get('/companies?min_employees=10&max_employees=5');
 
       expect(resp.statusCode).toBe(400);
@@ -56,7 +56,7 @@ describe("Company Routes Testing", function () {
 
   describe("POST /companies", function () {
     test("adds new company", async function () {
-      let newCompany = {
+      const newCompany = {
         "handle": "nike",
         "name": "Nike",
         "num_employees": 150000,
@@ -64,25 +64,26 @@ describe("Company Routes Testing", function () {
         "logo_url": "hi"
       };
 
-      let resp = await request(app)
-        .post('/companies')
-        .send(newCompany);
+      const resp = await request(app).post('/companies').send(newCompany);
 
       expect(resp.statusCode).toBe(201);
       expect(resp.body).toEqual({ 'company': newCompany });
+
+      const newResponse = await request(app)
+        .get(`/companies/${newCompany.handle}`);
+
+      expect(newResponse.statusCode).toBe(200);
     });
 
     test("doesn't add new company", async function () {
-      let failCompany = {
+      const failCompany = {
         "name": "Nike",
         "num_employees": 150000,
         "description": "company",
         "logo_url": "hi"
       };
 
-      let resp = await request(app)
-        .post('/companies')
-        .send(failCompany);
+      const resp = await request(app).post('/companies').send(failCompany);
 
       expect(resp.statusCode).toBe(400);
     })
@@ -90,24 +91,21 @@ describe("Company Routes Testing", function () {
 
   describe("GET /companies/:handle", function () {
     test("can get company by handle", async function () {
-      let resp = await request(app)
-        .get(`/companies/${company1.handle}`);
+      const resp = await request(app).get(`/companies/${company1.handle}`);
 
       expect(resp.statusCode).toBe(200);
       expect(resp.body).toEqual({ 'company': company1 });
     });
 
     test("will not get company that does not exist", async function () {
-      let resp = await request(app)
-        .get(`/companies/none-here`);
-
+      const resp = await request(app).get(`/companies/none-here`);
       expect(resp.statusCode).toBe(404);
     });
   });
 
   describe("PATCH /companies/:handle", function () {
     test("can update company by handle", async function () {
-      let resp = await request(app)
+      const resp = await request(app)
         .patch(`/companies/${company1.handle}`)
         .send({ "name": "COMPANY!" });
 
@@ -121,10 +119,13 @@ describe("Company Routes Testing", function () {
           "logo_url": company1.logo_url
         }
       });
+
+      const newResponse = await request(app).get(`/companies/${company1.handle}`);
+      expect(newResponse.statusCode).toBe(200);
     });
 
     test("will not update company that does not exist", async function () {
-      let resp = await request(app)
+      const resp = await request(app)
         .patch(`/companies/none-here`)
         .send({ "name": "COMPANY!" });
 
@@ -132,8 +133,21 @@ describe("Company Routes Testing", function () {
     });
   });
 
+  describe("DELETE /companies/:handle", function () {
+    test("can delete company by handle", async function () {
+      const resp = await request(app).delete(`/companies/${company1.handle}`);
+
+      expect(resp.statusCode).toBe(200);
+      expect(resp.body).toEqual({ message: "Company deleted" });
+    });
+
+    test("will not delete company that does not exist", async function () {
+      const resp = await request(app).delete(`/companies/none-here`);
+      expect(resp.statusCode).toBe(404);
+    });
+  });
+
   afterAll(function () {
     db.end();
   });
-
 });
