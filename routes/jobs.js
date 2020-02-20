@@ -28,9 +28,7 @@ router.post('/', async function (req, res, next) {
 router.get('/', async function (req, res, next) {
     try {
         const { search, min_salary, min_equity } = req.query;
-
-        let resp = await Job.findAll(search, min_salary, min_equity);
-
+        const resp = await Job.findAll(search, min_salary, min_equity);
         return res.json({ jobs: resp });
 
     } catch (err) {

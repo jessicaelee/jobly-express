@@ -18,5 +18,13 @@ CREATE TABLE jobs (
     constraint jobs_equity_check CHECK (( equity <= 1))
 );
 
-INSERT INTO companies (handle, name, num_employees, description, logo_url) VALUES ('app', 'apple', 10000, 'big company', 'none' ), ('ibm', 'ibm', 5000, 'big company', 'none' ), ('nor', 'nordstrom', 10, 'big company', 'none' );
+INSERT INTO companies (handle, name, num_employees, description, logo_url) 
+    VALUES  ('app', 'apple', 10000, 'big company', 'none' ), 
+            ('ibm', 'ibm', 5000, 'big company', 'none' ), 
+            ('nor', 'nordstrom', 10, 'big company', 'none' );
 
+INSERT INTO jobs (title, salary, equity, company_handle, date_posted)
+    VALUES  ('developer', 500, 0.3, 'app', CURRENT_TIMESTAMP),
+            ('sales person', 300, 0.05, 'nor', CURRENT_TIMESTAMP),
+            ('sales person', 400, 0.05, 'app', CURRENT_TIMESTAMP),
+            ('IT', 450, 0.3, 'ibm', CURRENT_TIMESTAMP);
