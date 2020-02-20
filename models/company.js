@@ -58,18 +58,25 @@ class Company {
 
     /** finds a company based on its handle */
     static async findOne(handle) {
-        const results = await db.query(
+        const companyResult = await db.query(
             `SELECT handle, name, num_employees, description, logo_url
-      FROM companies
-      WHERE handle=$1`,
+            FROM companies
+            WHERE handle=$1`,
             [handle]
         );
 
-        if (!results.rows.length) {
+        if (!companyResult.rows.length) {
             throw { message: `There is no company with the handle, ${handle}`, status: 404 }
         }
 
-        return results.rows[0];
+        const jobResult = await db.query(
+            `SELECT title, salary, equity, date_posted 
+            FROM jobs 
+            WHERE company_handle = $1`, [handle]);
+
+        companyResult.rows[0].jobs = jobResult.rows;
+
+        return companyResult.rows[0];
     }
 
     /** updates a company based on its handle */

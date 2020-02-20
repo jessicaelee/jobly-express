@@ -28,8 +28,8 @@ router.post('/', async function (req, res, next) {
 router.get('/', async function (req, res, next) {
     try {
         const { search, min_salary, min_equity } = req.query;
-        const resp = await Job.findAll(search, min_salary, min_equity);
-        return res.json({ jobs: resp });
+        const jobs = await Job.findAll(search, min_salary, min_equity);
+        return res.json({ jobs });
 
     } catch (err) {
         return next(err);
@@ -71,7 +71,7 @@ router.delete('/:id', async function (req, res, next) {
     try {
         const { id } = req.params;
         await Job.delete(id);
-        return res.json({ message: "Job deleted " })
+        return res.json({ message: "Job deleted" })
 
     } catch (err) {
         return next(err);
