@@ -12,10 +12,11 @@ app.use(express.json());
 
 const companyRoutes = require('./routes/companies');
 const jobRoutes = require('./routes/jobs');
+const userRoutes = require('./routes/users');
 
 app.use('/companies', companyRoutes);
 app.use('/jobs', jobRoutes);
-
+app.use('/users', userRoutes);
 
 // add logging system
 app.use(morgan("tiny"));

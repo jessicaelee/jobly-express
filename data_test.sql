@@ -17,3 +17,13 @@ CREATE TABLE jobs (
     date_posted timestamp with time zone NOT NULL,
     constraint jobs_equity_check CHECK (( equity <= 1))
 );
+
+CREATE TABLE users (
+    username TEXT PRIMARY KEY,
+    password TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    photo_url TEXT UNIQUE,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE
+);

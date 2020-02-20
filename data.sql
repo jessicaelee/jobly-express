@@ -2,6 +2,7 @@
 
 DROP TABLE companies;
 DROP TABLE jobs;
+DROP TABLE users;
 
 CREATE TABLE companies (
     handle TEXT PRIMARY KEY,
@@ -21,6 +22,16 @@ CREATE TABLE jobs (
     constraint jobs_equity_check CHECK (( equity <= 1))
 );
 
+CREATE TABLE users (
+    username TEXT PRIMARY KEY,
+    password TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    photo_url TEXT UNIQUE,
+    is_admin BOOLEAN NOT NULL DEFAULT false
+);
+
 INSERT INTO companies (handle, name, num_employees, description, logo_url) 
     VALUES  ('app', 'apple', 10000, 'big company', 'none' ), 
             ('ibm', 'ibm', 5000, 'big company', 'none' ), 
@@ -31,3 +42,8 @@ INSERT INTO jobs (title, salary, equity, company_handle, date_posted)
             ('sales person', 300, 0.05, 'nor', CURRENT_TIMESTAMP),
             ('sales person', 400, 0.05, 'app', CURRENT_TIMESTAMP),
             ('IT', 450, 0.3, 'ibm', CURRENT_TIMESTAMP);
+
+INSERT INTO users (username, password, first_name, last_name, email, photo_url, is_admin)
+    VALUES  ('user1', 'abcd', 'User', 'One', 'user1@user.com', 'isjfs', true),
+            ('user2', 'abcd', 'User', 'Two', 'user2@user.com', 'none', false),
+            ('user3', 'abcd', 'User', 'Three', 'user3@user.com', NULL, false);
