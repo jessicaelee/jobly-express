@@ -7,23 +7,39 @@ class Company {
     static async findAll(search, min, max) {
         let filters = [];
         let companyResp;
+        let idx = 1;
+        let baseURL = `SELECT handle, name FROM companies`
 
         if (search !== undefined) {
-            filters.push(`name LIKE '%${search}%'`);
+            baseURL += ` WHERE name ILIKE $1`
+            filters.push(`%${search}%`);
+            idx++
         }
         if (min !== undefined) {
-            filters.push(`num_employees >= ${min}`);
+            if (filters.length) {
+                baseURL += ` AND num_employees >= $${idx}`
+            } else {
+                baseURL += ` WHERE num_employees >= $${idx}`
+            }
+            idx++;
+            filters.push(min);
         }
         if (max !== undefined) {
-            filters.push(`num_employees >= ${max}`);
+            if (filters.length) {
+                baseURL += ` AND num_employees <= $${idx}`
+            } else {
+                baseURL += ` WHERE num_employees <= $${idx}`
+            }
+            idx++;
+            filters.push(max);
         }
 
         if (filters.length) {
-            let queryString = `SELECT handle, name FROM companies WHERE ` + filters.join("AND ");
-            companyResp = await db.query(queryString);
+            companyResp = await db.query(baseURL, filters)
         } else {
-            companyResp = await db.query(`SELECT handle, name FROM companies`);
+            companyResp = await db.query(baseURL)
         }
+
 
         return companyResp.rows;
     }

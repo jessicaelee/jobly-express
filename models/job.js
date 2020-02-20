@@ -7,40 +7,99 @@ class Job {
         const result = await db.query(
             `INSERT INTO jobs (title, salary, equity, company_handle, date_posted) 
              VALUES ($1, $2, $3, $4, current_timestamp) 
-             RETURNING title, salary, equity, company_handle`, 
-             [title, salary, equity, company_handle]);
+             RETURNING title, salary, equity, company_handle`,
+            [title, salary, equity, company_handle]);
 
         return result.rows[0];
     }
 
     static async findAll(search, salary, equity) {
         let filters = [];
-        let queryString;
         let jobResp;
+        let idx = 1;
+        let baseURL = `SELECT title, company_handle FROM jobs`;
 
         if (search !== undefined) {
-            filters.push(`title LIKE '%${search}%'`); //changed name to title
+            baseURL += ` WHERE title ILIKE $1`;
+            filters.push(`%${search}%`);
+            idx++;
         }
         if (salary !== undefined) {
-            filters.push(`salary >= ${salary}`);
+            if (filters.length) {
+                baseURL += ` AND salary >= $${idx}`;
+            } else {
+                baseURL += ` WHERE salary >= $${idx}`;
+            }
+            idx++;
+            filters.push(salary);
         }
         if (equity !== undefined) {
-            filters.push(`equity >= ${equity}`);
+            if (filters.length) {
+                baseURL += ` AND equity >= $${idx}`;
+            } else {
+                baseURL += ` WHERE equity >= $${idx}`;
+            }
+            idx++;
+            filters.push(equity);
         }
 
         if (filters.length) {
-            filters = filters.join(" AND ")
-            queryString = `SELECT title, company_handle FROM jobs WHERE ` + filters + ` ORDER BY date_posted DESC`;
+            jobResp = await db.query(baseURL, filters);
         } else {
-            queryString = `SELECT title, company_handle FROM jobs ORDER BY date_posted DESC`;
+            jobResp = await db.query(baseURL);
         }
-        
-        jobResp = await db.query(queryString);
+
         return jobResp.rows;
     }
 
+    static async findOne(id) {
+        const jobResult = await db.query(`SELECT title, company_handle, salary, equity FROM jobs WHERE id=$1`, [id]);
 
+        if (!jobResult.rows.length) {
+            throw { message: `There is no job with the id, ${id}`, status: 404 }
+        }
+
+        const companyHandle = jobResult.rows[0].company_handle;
+
+        const companyResult = await db.query(`SELECT name, num_employees, description FROM companies where handle = $1`, [companyHandle]);
+
+        jobResult.rows[0].company = companyResult.rows[0];
+
+        return jobResult.rows[0];
+    }
+
+    static async update(id, body) {
+        const { query, values } = sqlForPartialUpdate("jobs", body, "id", id);
+        const results = await db.query(query, values);
+
+        if (!results.rows.length) {
+            throw { message: `There is no job with the id, ${id}`, status: 404 }
+        }
+
+        const companyHandle = results.rows[0].company_handle;
+
+        const companyResult = await db.query(`SELECT name, num_employees, description FROM companies where handle = $1`, [companyHandle]);
+
+        results.rows[0].company = companyResult.rows[0];
+
+        return results.rows[0];
+    }
+
+    static async delete(id) {
+        const results = await db.query(
+            `DELETE FROM jobs
+      WHERE id=$1
+      RETURNING id`,
+            [id]);
+
+        if (!results.rows.length) {
+            throw { message: `There is no job with the id, ${id}`, status: 404 }
+        }
+    }
 }
+
+
+
 
 
 

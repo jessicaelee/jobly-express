@@ -4,7 +4,7 @@ const ExpressError = require('../helpers/expressError');
 const Job = require('../models/job');
 const jsonschema = require('jsonschema');
 const jobSchema = require('../schemas/jobSchema');
-// const updateCompanySchema = require('../schemas/updateCompanySchema');
+const updateJobSchema = require('../schemas/updateJobSchema');
 
 
 router.post('/', async function (req, res, next) {
@@ -36,32 +36,47 @@ router.get('/', async function (req, res, next) {
     }
 });
 
-// router.get('/:id', async function (req, res, next) {
-//     try {
+router.get('/:id', async function (req, res, next) {
+    try {
+        const job = await Job.findOne(req.params.id);
+        return res.json({ job });
+
+    } catch (err) {
+        return next(err);
+    }
+});
+
+router.patch('/:id', async function (req, res, next) {
+    try {
+        const result = jsonschema.validate(req.body, updateJobSchema);
+
+        const { body, params: { id } } = req;
+
+        if (!result.valid) {
+            const errorList = result.errors.map(error => error.stack);
+            const error = new ExpressError(errorList, 400);
+            return next(error);
+        }
+
+        const job = await Job.update(id, body);
+        return res.json({ job });
 
 
-//     } catch (err) {
-//         return next(err);
-//     }
-// });
+    } catch (err) {
+        return next(err);
+    }
+});
 
-// router.patch('/:id', async function (req, res, next) {
-//     try {
+router.delete('/:id', async function (req, res, next) {
+    try {
+        const { id } = req.params;
+        await Job.delete(id);
+        return res.json({ message: "Job deleted " })
 
-
-//     } catch (err) {
-//         return next(err);
-//     }
-// });
-
-// router.deelte('/:id', async function (req, res, next) {
-//     try {
-
-
-//     } catch (err) {
-//         return next(err);
-//     }
-// });
+    } catch (err) {
+        return next(err);
+    }
+});
 
 
 module.exports = router;
