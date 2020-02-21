@@ -7,7 +7,6 @@ const User = require('../models/user');
 const { SECRET_KEY } = require("../config");
 
 router.post('/login', async function (req, res, next) {
-    console.log('*****************************',req.body)
     try {
         const { username, password } = req.body;
         let query = await User.authenticate(username, password);
