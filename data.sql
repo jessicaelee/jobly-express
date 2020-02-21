@@ -1,7 +1,7 @@
 \c jobly
 
-DROP TABLE companies;
 DROP TABLE jobs;
+DROP TABLE companies;
 DROP TABLE users;
 
 CREATE TABLE companies (
@@ -28,7 +28,7 @@ CREATE TABLE users (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    photo_url TEXT UNIQUE,
+    photo_url TEXT,
     is_admin BOOLEAN NOT NULL DEFAULT false
 );
 
@@ -43,7 +43,12 @@ INSERT INTO jobs (title, salary, equity, company_handle, date_posted)
             ('sales person', 400, 0.05, 'app', CURRENT_TIMESTAMP),
             ('IT', 450, 0.3, 'ibm', CURRENT_TIMESTAMP);
 
-INSERT INTO users (username, password, first_name, last_name, email, photo_url, is_admin)
-    VALUES  ('user1', 'abcd', 'User', 'One', 'user1@user.com', 'isjfs', true),
-            ('user2', 'abcd', 'User', 'Two', 'user2@user.com', 'none', false),
-            ('user3', 'abcd', 'User', 'Three', 'user3@user.com', NULL, false);
+INSERT INTO users (username, password, first_name, last_name, email, photo_url)
+    VALUES  ('user1', 'abcd', 'User', 'One', 'user1@user.com', 'isjfs'),
+            ('user2', 'abcd', 'User', 'Two', 'user2@user.com', 'none'),
+            ('user3', 'abcd', 'User', 'Three', 'user3@user.com', NULL);
+
+
+-- {
+--   "_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluMSIsImlzX2FkbWluIjpmYWxzZSwiaWF0IjoxNTgyMjQ1ODExfQ.iULQhWRojCoI3zxd_t5dDyq6omoWNYqSpl8Z8vA8WoE"
+-- }

@@ -1,10 +1,13 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = new express.Router();
 const ExpressError = require('../helpers/expressError');
 const User = require('../models/user');
 const jsonschema = require('jsonschema');
 const userSchema = require('../schemas/userSchema');
 const updateUserSchema = require('../schemas/updateUserSchema');
+const { SECRET_KEY } = require("../config");
+const { ensureCorrectUser } = require('../middleware/auth')
 
 
 router.post('/', async function (req, res, next) {
@@ -18,7 +21,13 @@ router.post('/', async function (req, res, next) {
         }
 
         const user = await User.create(req.body);
-        return res.status(201).json({ user });
+        const { username, is_admin } = user;
+        const payload = { username, is_admin };
+        let token = jwt.sign(payload, SECRET_KEY);
+
+        return res.status(201).json({ token });
+
+        // return res.status(201).json({ user });
 
     } catch (err) {
         return next(err);
@@ -45,14 +54,14 @@ router.get('/:username', async function (req, res, next) {
     }
 });
 
-router.patch('/:username', async function (req, res, next) {
+router.patch('/:username', ensureCorrectUser, async function (req, res, next) {
     try {
         const result = jsonschema.validate(req.body, updateUserSchema);
 
         const { body, params: { username } } = req;
 
-        if(body.username) {
-          throw new ExpressError(`Cannot change username`, 400);
+        if (body.username) {
+            throw new ExpressError(`Cannot change username`, 400);
         }
 
         if (!result.valid) {
@@ -70,7 +79,7 @@ router.patch('/:username', async function (req, res, next) {
     }
 });
 
-router.delete('/:username', async function (req, res, next) {
+router.delete('/:username', ensureCorrectUser, async function (req, res, next) {
     try {
         const { username } = req.params;
         await User.delete(username);
@@ -80,6 +89,8 @@ router.delete('/:username', async function (req, res, next) {
         return next(err);
     }
 });
+
+
 
 
 module.exports = router;

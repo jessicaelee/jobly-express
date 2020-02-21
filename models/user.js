@@ -1,15 +1,18 @@
 const db = require('../db');
 const sqlForPartialUpdate = require('../helpers/partialUpdate');
+const bcrypt = require('bcrypt')
+const { BCRYPT_WORK_FACTOR } = require('../config');
 
 class User {
     static async create(user) {
-        const { username, password, first_name, last_name, email, photo_url, is_admin } = user;
+        const { username, password, first_name, last_name, email, photo_url } = user;
+        let hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
 
         const result = await db.query(
             `INSERT INTO users (username, password, first_name, last_name, email, photo_url, is_admin) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) 
+             VALUES ($1, $2, $3, $4, $5, $6, false) 
              RETURNING username, first_name, last_name, email, photo_url, is_admin`,
-            [username, password, first_name, last_name, email, photo_url, is_admin]);
+            [username, hashedPassword, first_name, last_name, email, photo_url]);
 
         return result.rows[0];
     }
@@ -45,7 +48,7 @@ class User {
         }
 
         const userQuery = await db.query(
-          `SELECT username, first_name, last_name, email, photo_url
+            `SELECT username, first_name, last_name, email, photo_url
           FROM users
           WHERE username=$1`, [username]
         );
@@ -64,6 +67,17 @@ class User {
             throw { message: `There is no user with the username, ${username}`, status: 404 }
         }
     }
+
+    static async authenticate(username, password) {
+        let result = await db.query(`SELECT password FROM users WHERE username = $1`, [username]);
+
+        let user = result.rows[0];
+
+        return user && await bcrypt.compare(password, user.password)
+    }
+
+
+
 }
 
 module.exports = User;

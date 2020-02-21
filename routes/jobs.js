@@ -5,9 +5,9 @@ const Job = require('../models/job');
 const jsonschema = require('jsonschema');
 const jobSchema = require('../schemas/jobSchema');
 const updateJobSchema = require('../schemas/updateJobSchema');
+const { ensureLoggedIn, ensureAdminUser } = require('../middleware/auth')
 
-
-router.post('/', async function (req, res, next) {
+router.post('/', ensureAdminUser, async function (req, res, next) {
     try {
         const result = jsonschema.validate(req.body, jobSchema);
 
@@ -25,8 +25,9 @@ router.post('/', async function (req, res, next) {
     }
 });
 
-router.get('/', async function (req, res, next) {
+router.get('/', ensureLoggedIn, async function (req, res, next) {
     try {
+        console.log(req.body)
         const { search, min_salary, min_equity } = req.query;
         const jobs = await Job.findAll(search, min_salary, min_equity);
         return res.json({ jobs });
@@ -36,7 +37,7 @@ router.get('/', async function (req, res, next) {
     }
 });
 
-router.get('/:id', async function (req, res, next) {
+router.get('/:id', ensureLoggedIn, async function (req, res, next) {
     try {
         const job = await Job.findOne(req.params.id);
         return res.json({ job });
@@ -46,7 +47,7 @@ router.get('/:id', async function (req, res, next) {
     }
 });
 
-router.patch('/:id', async function (req, res, next) {
+router.patch('/:id', ensureAdminUser, async function (req, res, next) {
     try {
         const result = jsonschema.validate(req.body, updateJobSchema);
 
@@ -67,7 +68,7 @@ router.patch('/:id', async function (req, res, next) {
     }
 });
 
-router.delete('/:id', async function (req, res, next) {
+router.delete('/:id', ensureAdminUser, async function (req, res, next) {
     try {
         const { id } = req.params;
         await Job.delete(id);

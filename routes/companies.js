@@ -5,9 +5,10 @@ const Company = require('../models/company');
 const jsonschema = require('jsonschema');
 const companySchema = require('../schemas/companySchema');
 const updateCompanySchema = require('../schemas/updateCompanySchema');
+const { authenticateJWT, ensureLoggedIn, ensureAdminUser } = require('../middleware/auth')
 
 /** GET all companies; returns {companies: [companyData, ...]} */
-router.get('/', async function (req, res, next) {
+router.get('/', authenticateJWT, ensureLoggedIn, async function (req, res, next) {
     try {
         const { search, min_employees, max_employees } = req.query;
 
@@ -25,7 +26,7 @@ router.get('/', async function (req, res, next) {
 });
 
 /** POST new company; returns {company: companyData} */
-router.post('/', async function (req, res, next) {
+router.post('/', ensureAdminUser, async function (req, res, next) {
     try {
         const result = jsonschema.validate(req.body, companySchema);
 
@@ -44,7 +45,7 @@ router.post('/', async function (req, res, next) {
 });
 
 /** GET one company by its handle; returns {company: companyData} */
-router.get('/:handle', async function (req, res, next) {
+router.get('/:handle', ensureLoggedIn, async function (req, res, next) {
     try {
         const company = await Company.findOne(req.params.handle);
         return res.json({ company });
@@ -55,7 +56,7 @@ router.get('/:handle', async function (req, res, next) {
 });
 
 /** PATCH one company by its handle; returns {company: companyData} */
-router.patch('/:handle', async function (req, res, next) {
+router.patch('/:handle', ensureAdminUser, async function (req, res, next) {
     try {
         const result = jsonschema.validate(req.body, updateCompanySchema);
 
@@ -76,7 +77,7 @@ router.patch('/:handle', async function (req, res, next) {
 });
 
 /** DELETE a company; returns { message: "Company deleted" } */
-router.delete('/:handle', async function (req, res, next) {
+router.delete('/:handle', ensureAdminUser, async function (req, res, next) {
     try {
         const { handle } = req.params
         await Company.delete(handle);
