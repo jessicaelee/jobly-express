@@ -7,15 +7,14 @@ const User = require('../models/user');
 const { SECRET_KEY } = require("../config");
 
 router.post('/login', async function (req, res, next) {
+    console.log('*****************************',req.body)
     try {
         const { username, password } = req.body;
         let query = await User.authenticate(username, password);
         if (query) {
             const { username, is_admin } = query;
             const payload = { username, is_admin };
-            console.log('payload', payload);
             let token = jwt.sign(payload, SECRET_KEY);
-
             return res.json({ token })
         } else {
             throw new ExpressError("Invalid username/password", 400)

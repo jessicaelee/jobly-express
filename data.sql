@@ -49,9 +49,6 @@ INSERT INTO users (username, password, first_name, last_name, email, photo_url)
             ('user3', 'abcd', 'User', 'Three', 'user3@user.com', NULL);
 
 
--- {
---   "_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluMSIsImlzX2FkbWluIjpmYWxzZSwiaWF0IjoxNTgyMjQ1ODExfQ.iULQhWRojCoI3zxd_t5dDyq6omoWNYqSpl8Z8vA8WoE"
--- }
 
 -- sairina's computer
 -- {
@@ -63,11 +60,21 @@ INSERT INTO users (username, password, first_name, last_name, email, photo_url)
 -- 	"is_admin": true
 -- }
 
-
+company
 {
-"_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyMCIsImlhdCI6MTU4MjMwNzYzOX0.IDbrPcaaRrXLGa1A_B5U3UnoRyOOevRJUJXFkhSqGFs",
+"_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyMCIsImlzX2FkbWluIjp0cnVlLCJpYXQiOjE1ODIzMDkwMTl9.1FEZjOB-2wkW8bEp9dveOV-o-t-PVNeImpH19u8LjzU",
 	"handle": "a",
 	"name": "ab", 
 	"num_employees": 5,
 	"description": "big"
 }
+
+job
+{
+"_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyMCIsImlzX2FkbWluIjp0cnVlLCJpYXQiOjE1ODIzMDkwMTl9.1FEZjOB-2wkW8bEp9dveOV-o-t-PVNeImpH19u8LjzU",
+	"title": "master clown", 
+	"salary": 281722,
+	"equity": 0.4,
+	"company_handle": "a" 
+}
+

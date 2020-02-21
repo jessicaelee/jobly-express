@@ -4,10 +4,12 @@ const request = require('supertest');
 const app = require('../../app');
 const db = require('../../db');
 const Company = require('../../models/company');
-const Job = require('../../models/job');
 const User = require('../../models/user');
+const Job = require('../../models/job');
+const jwt = require('jsonwebtoken');
+const { SECRET_KEY } = require('../../config');
 
-describe("Jobs Routes Testing", function () {
+describe("Job Routes Testing", function () {
 
   let company1;
   let company2;
@@ -15,6 +17,13 @@ describe("Jobs Routes Testing", function () {
   let job2;
   let user1;
   let user2;
+  let admin;
+  let testUser1;
+  let testUser2;
+  let testAdmin;
+  let testUser1Token;
+  let testUser2Token;
+  let testAdminToken;
 
   beforeEach(async function () {
     await db.query("DELETE FROM jobs");
@@ -56,7 +65,7 @@ describe("Jobs Routes Testing", function () {
       username: "user1",
       first_name: "User",
       last_name: "Last",
-      password: "123456",
+      password: "secret",
       email: "Test@test.com",
       photo_url: "none",
       is_admin: false
@@ -66,11 +75,32 @@ describe("Jobs Routes Testing", function () {
       username: "user2",
       first_name: "User2",
       last_name: "Last2",
-      password: "123456",
+      password: "secret",
       email: "Test2@test.com",
       photo_url: "ndfsdfvfgdgone",
       is_admin: false
     });
+
+    admin = await User.create({
+      username: "admin",
+      first_name: "Admin",
+      last_name: "Admin",
+      password: "secret",
+      email: "Admin@test.com",
+      photo_url: "ne",
+      is_admin: false
+    });
+
+    //updates admin to is_admin: true
+    admin = await db.query(`UPDATE users SET is_admin=true WHERE username='admin'`);
+
+    // we'll need tokens for future requests
+    testUser1 = { username: "user1", is_admin: false };
+    testUser2 = { username: "user2", is_admin: false };
+    testAdmin = { username: "admin", is_admin: true };
+    testUser1Token = jwt.sign(testUser1, SECRET_KEY);
+    testUser2Token = jwt.sign(testUser2, SECRET_KEY);
+    testAdminToken = jwt.sign(testAdmin, SECRET_KEY);
 
   });
 
@@ -99,7 +129,7 @@ describe("Jobs Routes Testing", function () {
   });
 
   describe("POST /users", function () {
-    test("adds new user", async function () {
+    test("creating new user", async function () {
       const user = {
         username: "user3",
         first_name: "User3",
@@ -170,10 +200,10 @@ describe("Jobs Routes Testing", function () {
   });
 
   describe("PATCH /users/:id", function () {
-    test("can update user by id", async function () {
+    xtest("can update user by id", async function () {
       const resp = await request(app)
         .patch(`/users/${user1.username}`)
-        .send({ first_name: "NEW NAME!" });
+        .send({ first_name: "NEW NAME!", _token: testUser1Token });
       const { username, last_name, email, photo_url } = user1
 
       const expected = {
@@ -192,10 +222,10 @@ describe("Jobs Routes Testing", function () {
       expect(newResponse.body).toEqual({ user: expected })
     });
 
-    test("will not update username", async function () {
+    test("will not update username field", async function () {
       const resp = await request(app)
         .patch(`/users/${user1.username}`)
-        .send({ username: "NEW NAME!" });
+        .send({ username: "NEW NAME!", _token: testUser1Token });
 
       expect(resp.statusCode).toBe(400);
     });
@@ -208,20 +238,41 @@ describe("Jobs Routes Testing", function () {
       expect(resp.statusCode).toBe(404);
     });
 
+    test("401: cannot update another user", async function () {
+      const resp = await request(app)
+        .patch(`/users/${user1.username}`)
+        .send({ last_name: "NEW NAME!", _token: testUser2Token });
+
+      expect(resp.statusCode).toBe(401);
+    });
+
 
   });
 
   describe("DELETE /users/:username", function () {
     test("can delete user by username", async function () {
-      const resp = await request(app).delete(`/users/${user1.username}`);
+      const resp = await request(app)
+      .delete(`/users/${user1.username}`)
+      .send({_token: testUser1Token});
 
       expect(resp.statusCode).toBe(200);
       expect(resp.body).toEqual({ message: "User deleted" });
     });
 
     test("will not delete user that does not exist", async function () {
-      const resp = await request(app).delete(`/users/0`);
+      const resp = await request(app)
+      .delete(`/users/0`)
+      .send({_token: testUser1Token});
+
       expect(resp.statusCode).toBe(404);
+    });
+
+    test("401 cannot delete another user", async function () {
+      const resp = await request(app)
+      .delete(`/users/${user1.username}`)
+      .send({_token: testUser2Token});
+
+      expect(resp.statusCode).toBe(401);
     });
   });
 
