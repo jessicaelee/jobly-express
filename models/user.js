@@ -21,7 +21,6 @@ class User {
     static async findAll() {
         const result = await db.query(`SELECT username, first_name, last_name, email FROM users`);
         return result.rows;
-
     }
 
     /** Gets user by username; returns {user: {username, first_name, last_name, email, photo_url}} */
@@ -34,7 +33,6 @@ class User {
         if (!userResult.rows.length) {
             throw { message: `There is no user with the username, ${username}`, status: 404 }
         }
-
         return userResult.rows[0];
     }
 
@@ -71,7 +69,7 @@ class User {
     static async authenticate(username, password) {
         let result = await db.query(`SELECT username, password, is_admin FROM users WHERE username = $1`, [username]);
         let user = result.rows[0];
-        
+
         if (await bcrypt.compare(password, user.password)) {
             return user;
         } else {
@@ -79,7 +77,6 @@ class User {
         }
         // return user && await bcrypt.compare(password, user.password);
     }
-
 }
 
 module.exports = User;

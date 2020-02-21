@@ -4,22 +4,17 @@ const sqlForPartialUpdate = require('../helpers/partialUpdate');
 class Job {
     static async create(job) {
         const { title, salary, equity, company_handle } = job;
+        try {
+            const result = await db.query(
+                `INSERT INTO jobs (title, salary, equity, company_handle, date_posted) 
+                 VALUES ($1, $2, $3, $4, current_timestamp) 
+                 RETURNING title, salary, equity, company_handle`,
+                [title, salary, equity, company_handle]);
 
-        const foreignKeyCheck = await db.query(
-            `SELECT handle FROM companies WHERE handle=$1`, [company_handle]
-        );
-
-        if (!foreignKeyCheck.rows.length) {
-            throw { message: `Your input is not correct`, status: 400 }
+            return result.rows[0];
+        } catch (err) {
+            throw { message: `There is no company with that handle`, status: 400 }
         }
-
-        const result = await db.query(
-            `INSERT INTO jobs (title, salary, equity, company_handle, date_posted) 
-             VALUES ($1, $2, $3, $4, current_timestamp) 
-             RETURNING title, salary, equity, company_handle`,
-            [title, salary, equity, company_handle]);
-
-        return result.rows[0];
     }
 
     static async findAll(search, salary, equity) {

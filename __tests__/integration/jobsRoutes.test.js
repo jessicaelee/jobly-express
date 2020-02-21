@@ -15,14 +15,13 @@ describe("Job Routes Testing", function () {
   let company2;
   let job1;
   let job2;
+  let job1id;
+  let job2id;
   let user1;
-  let user2;
   let admin;
   let testUser1;
-  let testUser2;
   let testAdmin;
   let testUser1Token;
-  let testUser2Token;
   let testAdminToken;
 
   beforeEach(async function () {
@@ -33,33 +32,43 @@ describe("Job Routes Testing", function () {
 
     company1 = await Company.create(
       {
-        "handle": "comp1",
-        "name": "testcompany1",
-        "num_employees": 1000
+        handle: "comp1",
+        name: "testcompany1",
+        num_employees: 1000
       });
 
     company2 = await Company.create(
       {
-        "handle": "comp2",
-        "name": "testcompany2",
-        "num_employees": 2000
+        handle: "comp2",
+        name: "testcompany2",
+        num_employees: 2000
       });
 
     job1 = await Job.create(
       {
-        "title": "developer",
-        "salary": 1295387,
-        "equity": 0.8,
-        "company_handle": "comp2"
+        title: "developer",
+        salary: 1295387,
+        equity: 0.8,
+        company_handle: "comp2"
       });
 
     job2 = await Job.create(
       {
-        "title": "developer",
-        "salary": 500000,
-        "equity": 0.3,
-        "company_handle": "comp1"
+        title: "developer",
+        salary: 500000,
+        equity: 0.3,
+        company_handle: "comp1"
       });
+
+    const job1query = await db.query(`SELECT id FROM jobs WHERE company_handle = 
+    'comp2'`);
+
+    job1id = job1query.rows[0].id;
+
+    const job2query = await db.query(`SELECT id FROM jobs WHERE company_handle = 
+    'comp1'`);
+
+    job2id = job2query.rows[0].id;
 
     user1 = await User.create({
       username: "user1",
@@ -68,16 +77,6 @@ describe("Job Routes Testing", function () {
       password: "secret",
       email: "Test@test.com",
       photo_url: "none",
-      is_admin: false
-    });
-
-    user2 = await User.create({
-      username: "user2",
-      first_name: "User2",
-      last_name: "Last2",
-      password: "secret",
-      email: "Test2@test.com",
-      photo_url: "ndfsdfvfgdgone",
       is_admin: false
     });
 
@@ -96,10 +95,8 @@ describe("Job Routes Testing", function () {
 
     // we'll need tokens for future requests
     testUser1 = { username: "user1", is_admin: false };
-    testUser2 = { username: "user2", is_admin: false };
     testAdmin = { username: "admin", is_admin: true };
     testUser1Token = jwt.sign(testUser1, SECRET_KEY);
-    testUser2Token = jwt.sign(testUser2, SECRET_KEY);
     testAdminToken = jwt.sign(testAdmin, SECRET_KEY);
 
   });
@@ -190,7 +187,7 @@ describe("Job Routes Testing", function () {
 
       const resp = await request(app)
         .post('/jobs')
-        .send({ ...failJob, _token: testUser2Token });
+        .send({ ...failJob, _token: testUser1Token });
 
       expect(resp.statusCode).toBe(401);
     })
@@ -199,23 +196,14 @@ describe("Job Routes Testing", function () {
   describe("GET /jobs/:id", function () {
     test("can get job by id", async function () {
       const resp = await request(app)
-        .get(`/jobs/1`)
-        .send({ _token: testUser2Token });
+        .get(`/jobs/${job1id}`)
+        .send({ _token: testUser1Token });
+
+      const { description, name, num_employees } = company2
 
       expect(resp.statusCode).toBe(200);
       expect(resp.body).toEqual({
-        'job':
-        {
-          title: job1.title,
-          company_handle: job1.company_handle,
-          salary: job1.salary,
-          equity: job1.equity,
-          company: {
-            description: company2.description,
-            name: company2.name,
-            num_employees: company2.num_employees
-          }
-        }
+        job: { ...job1, company: { description, name, num_employees } }
       });
     });
 
@@ -229,7 +217,7 @@ describe("Job Routes Testing", function () {
 
     test("401 unauthorized access to jobs id", async function () {
       const resp = await request(app)
-        .get(`/jobs/1`).send({ _token: 'qp98hfasdhfpawiefapfuh' });
+        .get(`/jobs/${job1id}`).send({ _token: 'qp98hfasdhfpawiefapfuh' });
 
       expect(resp.statusCode).toBe(401);
     });
@@ -238,7 +226,7 @@ describe("Job Routes Testing", function () {
   describe("PATCH /jobs/:id", function () {
     test("can update job by id", async function () {
       const resp = await request(app)
-        .patch(`/jobs/1`)
+        .patch(`/jobs/${job1id}`)
         .send({ title: "job!", _token: testAdminToken });
 
       expect(resp.statusCode).toBe(200);
@@ -260,7 +248,7 @@ describe("Job Routes Testing", function () {
       });
 
       const newResponse = await request(app)
-        .get(`/jobs/1`)
+        .get(`/jobs/${job1id}`)
         .send({ _token: testUser1Token });
       expect(newResponse.statusCode).toBe(200);
     });
@@ -275,8 +263,8 @@ describe("Job Routes Testing", function () {
 
     test("401: unauthorized to update job", async function () {
       const resp = await request(app)
-        .patch(`/jobs/2`)
-        .send({ title: "job!", _token: testUser2Token });
+        .patch(`/jobs/${job2id}`)
+        .send({ title: "job!", _token: testUser1Token });
 
       expect(resp.statusCode).toBe(401);
     });
@@ -284,7 +272,7 @@ describe("Job Routes Testing", function () {
 
   describe("DELETE /jobs/:id", function () {
     test("can delete job by id", async function () {
-      const resp = await request(app).delete(`/jobs/1`)
+      const resp = await request(app).delete(`/jobs/${job1id}`)
         .send({ _token: testAdminToken });
 
       expect(resp.statusCode).toBe(200);
@@ -300,7 +288,7 @@ describe("Job Routes Testing", function () {
 
     test("401: not authorized to delete job", async function () {
       const resp = await request(app)
-        .delete(`/jobs/1`)
+        .delete(`/jobs/${job1id}`)
         .send({ _token: testUser1Token });
 
       expect(resp.statusCode).toBe(401);

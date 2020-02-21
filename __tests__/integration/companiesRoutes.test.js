@@ -14,15 +14,11 @@ describe("Company Routes Testing", function () {
   let company1;
   let company2;
   let job1;
-  let job2;
   let user1;
-  let user2;
   let admin;
   let testUser1;
-  let testUser2;
   let testAdmin;
   let testUser1Token;
-  let testUser2Token;
   let testAdminToken;
 
   beforeEach(async function () {
@@ -33,32 +29,24 @@ describe("Company Routes Testing", function () {
 
     company1 = await Company.create(
       {
-        "handle": "comp1",
-        "name": "testcompany1",
-        "num_employees": 1000
+        handle: "comp1",
+        name: "testcompany1",
+        num_employees: 1000
       });
 
     company2 = await Company.create(
       {
-        "handle": "comp2",
-        "name": "testcompany2",
-        "num_employees": 2000
+        handle: "comp2",
+        name: "testcompany2",
+        num_employees: 2000
       });
 
     job1 = await Job.create(
       {
-        "title": "developer",
-        "salary": 1295387,
-        "equity": 0.8,
-        "company_handle": "comp2"
-      });
-
-    job2 = await Job.create(
-      {
-        "title": "developer",
-        "salary": 500000,
-        "equity": 0.3,
-        "company_handle": "comp1"
+        title: "developer",
+        salary: 1295387,
+        equity: 0.8,
+        company_handle: "comp2"
       });
 
     user1 = await User.create({
@@ -68,16 +56,6 @@ describe("Company Routes Testing", function () {
       password: "secret",
       email: "Test@test.com",
       photo_url: "none",
-      is_admin: false
-    });
-
-    user2 = await User.create({
-      username: "user2",
-      first_name: "User2",
-      last_name: "Last2",
-      password: "secret",
-      email: "Test2@test.com",
-      photo_url: "ndfsdfvfgdgone",
       is_admin: false
     });
 
@@ -96,10 +74,8 @@ describe("Company Routes Testing", function () {
 
     // we'll need tokens for future requests
     testUser1 = { username: "user1", is_admin: false };
-    testUser2 = { username: "user2", is_admin: false };
     testAdmin = { username: "admin", is_admin: true };
     testUser1Token = jwt.sign(testUser1, SECRET_KEY);
-    testUser2Token = jwt.sign(testUser2, SECRET_KEY);
     testAdminToken = jwt.sign(testAdmin, SECRET_KEY);
 
   });
@@ -112,14 +88,14 @@ describe("Company Routes Testing", function () {
 
       expect(resp.statusCode).toBe(200);
       expect(resp.body).toEqual({
-        'companies':
+        companies:
           [{
-            "handle": company1.handle,
-            "name": company1.name
+            handle: company1.handle,
+            name: company1.name
           },
           {
-            "handle": company2.handle,
-            "name": company2.name
+            handle: company2.handle,
+            name: company2.name
           }]
       });
     });
@@ -144,11 +120,11 @@ describe("Company Routes Testing", function () {
   describe("POST /companies", function () {
     test("adds new company", async function () {
       const newCompany = {
-        "handle": "nike",
-        "name": "Nike",
-        "num_employees": 150000,
-        "description": "company",
-        "logo_url": "hi"
+        handle: "nike",
+        name: "Nike",
+        num_employees: 150000,
+        description: "company",
+        logo_url: "hi"
       };
 
       const resp = await request(app)
@@ -160,17 +136,17 @@ describe("Company Routes Testing", function () {
 
       const newResponse = await request(app)
         .get(`/companies/${newCompany.handle}`)
-        .send({ _token: testUser2Token });
+        .send({ _token: testUser1Token });
 
       expect(newResponse.statusCode).toBe(200);
     });
 
     test("doesn't add company missing handle, but authorized", async function () {
       const failCompany = {
-        "name": "Nike",
-        "num_employees": 150000,
-        "description": "company",
-        "logo_url": "hi"
+        name: "Nike",
+        num_employees: 150000,
+        description: "company",
+        logo_url: "hi"
       };
 
       const resp = await request(app).post('/companies')
@@ -178,14 +154,13 @@ describe("Company Routes Testing", function () {
 
       expect(resp.statusCode).toBe(400);
     });
-
     test("401: not authorized to add company", async function () {
       const newCompany = {
-        "handle": "nike",
-        "name": "Nike",
-        "num_employees": 150000,
-        "description": "company",
-        "logo_url": "hi"
+        handle: "nike",
+        name: "Nike",
+        num_employees: 150000,
+        description: "company",
+        logo_url: "hi"
       };
 
       const resp = await request(app).post('/companies')
@@ -241,12 +216,12 @@ describe("Company Routes Testing", function () {
 
       expect(resp.statusCode).toBe(200);
       expect(resp.body).toEqual({
-        'company': {
-          "handle": company1.handle,
-          "name": "COMPANY!",
-          "num_employees": company1.num_employees,
-          "description": company1.description,
-          "logo_url": company1.logo_url
+        company: {
+          handle: company1.handle,
+          name: "COMPANY!",
+          num_employees: company1.num_employees,
+          description: company1.description,
+          logo_url: company1.logo_url
         }
       });
 
@@ -267,7 +242,7 @@ describe("Company Routes Testing", function () {
     test("401: not authorized to access path", async function () {
       const resp = await request(app)
         .patch(`/companies/none-here`)
-        .send({ name: "COMPANY!", _token: testUser2Token });
+        .send({ name: "COMPANY!", _token: testUser1Token });
 
       expect(resp.statusCode).toBe(401);
     });

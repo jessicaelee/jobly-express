@@ -22,8 +22,7 @@ router.post('/', async function (req, res, next) {
     }
 
     const user = await User.create(req.body);
-    const { username, is_admin } = user;
-    const payload = { username, is_admin };
+    const { first_name, last_name, email, photo_url, ...payload } = user;
     let token = jwt.sign(payload, SECRET_KEY);
 
     return res.status(201).json({ token });
