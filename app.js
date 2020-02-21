@@ -11,7 +11,7 @@ const morgan = require("morgan");
 const app = express();
 
 app.use(express.json());
-app.use(authenticateJWT)
+app.use(authenticateJWT);
 
 const companyRoutes = require('./routes/companies');
 const jobRoutes = require('./routes/jobs');

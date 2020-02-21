@@ -69,14 +69,16 @@ class User {
     }
 
     static async authenticate(username, password) {
-        let result = await db.query(`SELECT password FROM users WHERE username = $1`, [username]);
-
+        let result = await db.query(`SELECT username, password, is_admin FROM users WHERE username = $1`, [username]);
         let user = result.rows[0];
-
-        return user && await bcrypt.compare(password, user.password)
+        
+        if (await bcrypt.compare(password, user.password)) {
+            return user;
+        } else {
+            throw { message: `Invalid username/password`, status: 404 }
+        }
+        // return user && await bcrypt.compare(password, user.password);
     }
-
-
 
 }
 

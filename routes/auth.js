@@ -9,10 +9,11 @@ const { SECRET_KEY } = require("../config");
 router.post('/login', async function (req, res, next) {
     try {
         const { username, password } = req.body;
-        if (await User.authenticate(username, password)) {
-            const { username } = req.body;
-            const is_admin = req.user;
+        let query = await User.authenticate(username, password);
+        if (query) {
+            const { username, is_admin } = query;
             const payload = { username, is_admin };
+            console.log('payload', payload);
             let token = jwt.sign(payload, SECRET_KEY);
 
             return res.json({ token })

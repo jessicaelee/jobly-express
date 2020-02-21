@@ -10,7 +10,7 @@ function authenticateJWT(req, res, next) {
         req.user = payload;
         return next();
     } catch (err) {
-        return next(err);
+        return next(); //NEEDS TO BE EMPTY to move to next middleware
     }
 }
 

@@ -52,3 +52,22 @@ INSERT INTO users (username, password, first_name, last_name, email, photo_url)
 -- {
 --   "_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluMSIsImlzX2FkbWluIjpmYWxzZSwiaWF0IjoxNTgyMjQ1ODExfQ.iULQhWRojCoI3zxd_t5dDyq6omoWNYqSpl8Z8vA8WoE"
 -- }
+
+-- sairina's computer
+-- {
+-- 	"username": "user20",
+-- 	"password":"clowns",
+-- 	"first_name": "1023924",
+-- 	"last_name": "owiejafe",
+-- 	"email": "abc@asdasdff.com",
+-- 	"is_admin": true
+-- }
+
+
+{
+"_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyMCIsImlhdCI6MTU4MjMwNzYzOX0.IDbrPcaaRrXLGa1A_B5U3UnoRyOOevRJUJXFkhSqGFs",
+	"handle": "a",
+	"name": "ab", 
+	"num_employees": 5,
+	"description": "big"
+}

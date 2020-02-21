@@ -8,7 +8,7 @@ const updateCompanySchema = require('../schemas/updateCompanySchema');
 const { authenticateJWT, ensureLoggedIn, ensureAdminUser } = require('../middleware/auth')
 
 /** GET all companies; returns {companies: [companyData, ...]} */
-router.get('/', authenticateJWT, ensureLoggedIn, async function (req, res, next) {
+router.get('/', ensureLoggedIn, async function (req, res, next) {
     try {
         const { search, min_employees, max_employees } = req.query;
 
